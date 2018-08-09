@@ -5,8 +5,6 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Configurations>Debug;Release</Configurations>
     <LangVersion>7.2</LangVersion>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -15,17 +13,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <FileVersion>$(Version)</FileVersion>
-    <AssemblyVersion>$(Version)</AssemblyVersion>
-    <PackageVersion>$(Version)</PackageVersion>
     <PackageReleaseNotes>TODO</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup>
-    <Authors>Vostok team</Authors>
-    <Company>SKB Kontur</Company>
-    <Product>Vostok</Product>
-    <Copyright>Copyright (c) 2017-2018 SKB Kontur</Copyright>
     <Title>Vostok logging library</Title>
     <Description>Logging library for microservice toolkit http://vostok.tools/</Description>
   </PropertyGroup>
@@ -33,10 +24,8 @@
   <PropertyGroup>
     <PackageProjectUrl>https://github.com/vostok/logging</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/vostok/logging/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageTags>vostok vostok.logging</PackageTags>
     <RepositoryUrl>https://github.com/vostok/logging</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -45,12 +34,10 @@
 
   <ItemGroup>
     <Reference Include="Vostok.Logging.Abstractions">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\vostok.logging.abstractions\Vostok.Logging.Abstractions\bin\Release\netstandard2.0\Vostok.Logging.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Vostok.Commons">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\vostok.commons\Vostok.Commons\bin\Release\netstandard2.0\Vostok.Commons.dll</HintPath>
+    <Reference Include="Vostok.Logging.Formatting">
+      <HintPath>..\..\vostok.logging.formatting\Vostok.Logging.Formatting\bin\Release\netstandard2.0\Vostok.Logging.Formatting.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

@@ -4,6 +4,7 @@ using log4net.Core;
 using log4net.Repository.Hierarchy;
 using log4net.Util;
 using Vostok.Logging.Abstractions;
+using Vostok.Logging.Formatting;
 
 namespace Vostok.Logging.Log4net
 {
@@ -30,7 +31,7 @@ namespace Vostok.Logging.Log4net
 
         public static LoggingEvent TranslateEvent(ILogger logger, LogEvent @event)
         {
-            var message = LogEventFormatter.FormatMessage(@event.MessageTemplate, @event.Properties);
+            var message = LogEventFormatter.Format(@event, OutputTemplate.Default);
             var properties = TranslateProperties(@event.Properties);
             var loggingEventData = new LoggingEventData
             {
