@@ -9,7 +9,7 @@ notests *default:
     - Vostok.Logging.Log4net/bin/Release/netstandard2.0/Vostok.Logging.Log4net.dll
 
   deps:
-    - vostok.logging.abstractions@dev
+    - vostok.logging.abstractions
 
 full-build > notests:
   build:
