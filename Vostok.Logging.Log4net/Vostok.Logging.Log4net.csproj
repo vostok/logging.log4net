@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\..\vostok.devtools\library-common-props\Main-Project.props" />
+  <Import Project="..\..\vostok.devtools\git-commit-to-assembly-title\Vostok.Tools.GitCommit2AssemblyTitle.props" />
+
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Configurations>Debug;Release</Configurations>
@@ -22,10 +25,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageProjectUrl>https://github.com/vostok/logging</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/vostok/logging/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/vostok/logging.log4net</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/vostok/logging.log4net/blob/master/LICENSE</PackageLicenseUrl>
     <PackageTags>vostok vostok.logging</PackageTags>
-    <RepositoryUrl>https://github.com/vostok/logging</RepositoryUrl>
+    <RepositoryUrl>https://github.com/vostok/logging.log4net</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -40,4 +43,5 @@
       <HintPath>..\..\vostok.logging.formatting\Vostok.Logging.Formatting\bin\Release\netstandard2.0\Vostok.Logging.Formatting.dll</HintPath>
     </Reference>
   </ItemGroup>
+
 </Project>

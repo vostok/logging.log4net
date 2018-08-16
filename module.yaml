@@ -7,9 +7,13 @@ notests *default:
 
   install:
     - Vostok.Logging.Log4net/bin/Release/netstandard2.0/Vostok.Logging.Log4net.dll
+    - module vostok.logging.abstractions
+    - nuget log4net/2.0.8
 
   deps:
+    - vostok.devtools
     - vostok.logging.abstractions
+    - vostok.logging.formatting
 
 full-build > notests:
   build:
