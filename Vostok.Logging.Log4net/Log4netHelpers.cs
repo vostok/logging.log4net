@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Reflection;
 using JetBrains.Annotations;
 using log4net.Core;
 using log4net.Repository.Hierarchy;
-using log4net.Util;
 using Vostok.Logging.Abstractions;
 using Vostok.Logging.Formatting;
 
@@ -11,25 +12,26 @@ namespace Vostok.Logging.Log4net
 {
     internal static class Log4netHelpers
     {
+        [CanBeNull]
+        private static readonly Action<LoggingEvent, DateTime> timestampSetter;
+
+        static Log4netHelpers()
+        {
+            timestampSetter = CompileTimestampSetter();
+        }
+
         [NotNull]
         public static LoggingEvent TranslateEvent([NotNull] ILogger logger, [NotNull] LogEvent @event)
         {
             var level = TranslateLevel(@event.Level);
-            var properties = TranslateProperties(@event.Properties);
             var message = LogMessageFormatter.Format(@event);
             var timestamp = @event.Timestamp.UtcDateTime;
 
-            var loggingEventData = new LoggingEventData
-            {
-                Level = level,
-                Message = message,
-                Properties = properties,
-                TimeStampUtc = timestamp,
-                LoggerName = logger.Name
-            };
+            var loggingEvent = new LoggingEvent(typeof(Logger), logger.Repository, logger.Name, level, message, @event.Exception);
 
-            // TODO(iloktionov): set exception without rendering it
-            var loggingEvent = new LoggingEvent(typeof(Logger), logger.Repository, loggingEventData, default);
+            FillProperties(loggingEvent, @event.Properties);
+
+            timestampSetter?.Invoke(loggingEvent, timestamp);
 
             return loggingEvent;
         }
@@ -59,18 +61,46 @@ namespace Vostok.Logging.Log4net
             }
         }
 
-        [CanBeNull]
-        private static PropertiesDictionary TranslateProperties([CanBeNull] IReadOnlyDictionary<string, object> properties)
+        private static void FillProperties([NotNull] LoggingEvent log4netEvent, [CanBeNull] IReadOnlyDictionary<string, object> properties)
         {
             if (properties == null || properties.Count == 0)
-                return null;
-
-            var result = new PropertiesDictionary();
+                return;
 
             foreach (var pair in properties)
-                result[pair.Key] = pair.Value;
+            {
+                log4netEvent.Properties[pair.Key] = pair.Value;
+            }
+        }
 
-            return result;
+        [CanBeNull]
+        private static Action<LoggingEvent, DateTime> CompileTimestampSetter()
+        {
+            try
+            {
+                var dataFieldInfo = typeof(LoggingEvent).GetField("m_data", BindingFlags.Instance | BindingFlags.NonPublic);
+                if (dataFieldInfo == null)
+                    return null;
+
+                var timestampPropertyInfo = typeof(LoggingEventData).GetProperty(nameof(LoggingEventData.TimeStampUtc), BindingFlags.Instance | BindingFlags.Public);
+                if (timestampPropertyInfo == null)
+                    return null;
+
+                var timestampPropertySetter = timestampPropertyInfo.GetSetMethod();
+                if (timestampPropertySetter == null)
+                    return null;
+
+                var eventParameter = Expression.Parameter(typeof(LoggingEvent));
+                var timestampParameter = Expression.Parameter(typeof(DateTime));
+
+                var dataFieldAccess = Expression.MakeMemberAccess(eventParameter, dataFieldInfo);
+                var setterExpression = Expression.Call(dataFieldAccess, timestampPropertySetter, timestampParameter);
+
+                return Expression.Lambda<Action<LoggingEvent, DateTime>>(setterExpression, eventParameter, timestampParameter).Compile();
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }
