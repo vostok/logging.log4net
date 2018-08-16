@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using log4net.Core;
 using log4net.Repository.Hierarchy;
 using log4net.Util;
@@ -10,6 +11,30 @@ namespace Vostok.Logging.Log4net
 {
     internal static class Log4netHelpers
     {
+        [NotNull]
+        public static LoggingEvent TranslateEvent([NotNull] ILogger logger, [NotNull] LogEvent @event)
+        {
+            var level = TranslateLevel(@event.Level);
+            var properties = TranslateProperties(@event.Properties);
+            var message = LogMessageFormatter.Format(@event);
+            var timestamp = @event.Timestamp.UtcDateTime;
+
+            var loggingEventData = new LoggingEventData
+            {
+                Level = level,
+                Message = message,
+                Properties = properties,
+                TimeStampUtc = timestamp,
+                LoggerName = logger.Name
+            };
+
+            // TODO(iloktionov): set exception without rendering it
+            var loggingEvent = new LoggingEvent(typeof(Logger), logger.Repository, loggingEventData, default);
+
+            return loggingEvent;
+        }
+
+        [NotNull]
         public static Level TranslateLevel(LogLevel level)
         {
             switch (level)
@@ -34,33 +59,18 @@ namespace Vostok.Logging.Log4net
             }
         }
 
-        public static LoggingEvent TranslateEvent(ILogger logger, LogEvent @event)
+        [CanBeNull]
+        private static PropertiesDictionary TranslateProperties([CanBeNull] IReadOnlyDictionary<string, object> properties)
         {
-            var message = LogMessageFormatter.Format(@event);
-
-            var properties = TranslateProperties(@event.Properties);
-
-            var loggingEventData = new LoggingEventData
-            {
-                Level = TranslateLevel(@event.Level),
-                Properties = properties,
-                TimeStampUtc = @event.Timestamp.UtcDateTime,
-                ExceptionString = @event.Exception == null ? null : logger.Repository.RendererMap.FindAndRender(@event.Exception),
-                Message = logger.Repository.RendererMap.FindAndRender(message),
-                LoggerName = logger.Name
-            };
-            return new LoggingEvent(typeof(Logger), logger.Repository, loggingEventData);
-        }
-
-        private static PropertiesDictionary TranslateProperties(IReadOnlyDictionary<string, object> readOnlyDictionary)
-        {
-            if (readOnlyDictionary == null)
+            if (properties == null || properties.Count == 0)
                 return null;
 
-            var properties = new PropertiesDictionary();
-            foreach (var kvp in readOnlyDictionary)
-                properties[kvp.Key] = kvp.Value;
-            return properties;
+            var result = new PropertiesDictionary();
+
+            foreach (var pair in properties)
+                result[pair.Key] = pair.Value;
+
+            return result;
         }
     }
 }
