@@ -1,21 +1,26 @@
 ﻿using System;
+using JetBrains.Annotations;
 using log4net.Core;
 using Vostok.Logging.Abstractions;
 
 namespace Vostok.Logging.Log4net
 {
+    // TODO(iloktionov): 1. xml-docs
+    // TODO(iloktionov): 2. better unit test coverage
+    // TODO(iloktionov): 3. correct ForContext() implementation
+
     public class Log4netHierarchicalLog : ILog
     {
         private readonly ILogger logger;
         
-        public Log4netHierarchicalLog(log4net.ILog log)
+        public Log4netHierarchicalLog([NotNull] log4net.ILog log)
             : this(log.Logger)
         {
         }
 
-        private Log4netHierarchicalLog(ILogger logger)
+        public Log4netHierarchicalLog([NotNull] ILogger logger)
         {
-            this.logger = logger;
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public void Log(LogEvent @event)

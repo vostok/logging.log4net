@@ -1,22 +1,28 @@
 ﻿using System;
+using JetBrains.Annotations;
 using log4net.Core;
+using log4net.Repository.Hierarchy;
 using Vostok.Logging.Abstractions;
 using ILog = Vostok.Logging.Abstractions.ILog;
 
 namespace Vostok.Logging.Log4net
 {
+    // TODO(iloktionov): 1. xml-docs
+    // TODO(iloktionov): 2. better unit test coverage (ForContext)
+    // TODO(iloktionov): 3. do something about global properties (log4net:HostName, log4net:UserName, log4net:Identity)
+
     public class Log4netLog : ILog
     {
         private readonly ILogger logger;
 
-        public Log4netLog(log4net.ILog log)
+        public Log4netLog([NotNull] log4net.ILog log)
             : this(log.Logger)
         {
         }
 
-        private Log4netLog(ILogger logger)
+        public Log4netLog([NotNull] ILogger logger)
         {
-            this.logger = logger;
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public void Log(LogEvent @event)
@@ -37,9 +43,21 @@ namespace Vostok.Logging.Log4net
 
         public ILog ForContext(string context)
         {
-            if (string.IsNullOrEmpty(context))
-                throw new ArgumentException("Empty context is not allowed", nameof(context));
-            return context == logger.Name ? this : new Log4netLog(logger.Repository.GetLogger(context));
+            ILogger newLogger;
+
+            if (context == null)
+            {
+                newLogger = (logger.Repository as Hierarchy)?.Root ?? logger;
+            }
+            else
+            {
+                newLogger = logger.Repository.GetLogger(context);
+            }
+
+            if (newLogger.Name == context)
+                return this;
+
+            return new Log4netLog(newLogger);
         }
     }
 }

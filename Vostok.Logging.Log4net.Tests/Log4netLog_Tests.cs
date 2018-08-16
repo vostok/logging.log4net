@@ -1,83 +1,166 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
+using System.Text;
 using FluentAssertions;
 using log4net;
 using log4net.Appender;
 using log4net.Config;
 using log4net.Core;
+using log4net.Layout;
+using log4net.Repository;
+using log4net.Repository.Hierarchy;
 using NUnit.Framework;
 using Vostok.Logging.Abstractions;
+using ILog = Vostok.Logging.Abstractions.ILog;
 
 namespace Vostok.Logging.Log4net.Tests
 {
     [TestFixture]
     internal class Log4netLog_Tests
     {
-        [TestCase("")]
-        [TestCase(null)]
-        public void Log4netLog_should_throw_ArgumentException_on_empty_context(string context)
-        {
-            Assert.Throws<ArgumentException>(() => log.ForContext(context));
-        }
+        private StringBuilder outputBuilder;
+        private StringWriter outputWriter;
 
-        [Test]
-        public void Log4netLog_should_log_messages()
-        {
-            var messages = new[] { "Hello, World 1", "Hello, World 2" };
-            
-            log.Info(messages[0]);
-            log.Info(messages[1]);
+        private MemoryAppender memoryAppender;
+        private TextWriterAppender textAppender;
+        private ILoggerRepository log4netRepository;
+        private ILogger log4netLogger;
+        private ILog adapter;
 
-            appender.GetEvents().Select(x => x.RenderedMessage).Should().Equal(messages);
-        }
+        private LoggingEvent ObservedEvent => memoryAppender.GetEvents().Last();
 
-        [Test]
-        public void Log4netLog_should_use_context_as_logger_name()
-        {
-            var contexts = new[] { "lalala", "bububu" };
-            log.ForContext(contexts[0]).Info("msg1");
-            log.ForContext(contexts[1]).Info("msg2");
-            appender.GetEvents().Select(x => x.LoggerName).Should().Equal(contexts);
-        }
-
-        [Test]
-        public void Log4netLog_should_create_events_with_correct_timestamp()
-        {
-            var timestamp = DateTimeOffset.UtcNow.AddDays(1);
-            log.Log(new LogEvent(LogLevel.Info, timestamp, "lalala"));
-            appender.GetEvents().Single().TimeStampUtc.Should().Be(timestamp.UtcDateTime);
-        }
-
-        [TestCaseSource(nameof(GetLevelsMap))]
-        public void Log4netLog_should_translate_level_correctly(LogLevel level, Level log4netLevel)
-        {
-            log.Log(new LogEvent(level, DateTimeOffset.UtcNow, "lalala"));
-            appender.GetEvents().Single().Level.Should().Be(log4netLevel);
-        }
-
-        private static object[][] GetLevelsMap()
-        {
-            return new[]
-            {
-                new object[] {LogLevel.Fatal, Level.Fatal},
-                new object[] {LogLevel.Error, Level.Error},
-                new object[] {LogLevel.Warn, Level.Warn},
-                new object[] {LogLevel.Info, Level.Info},
-                new object[] {LogLevel.Debug, Level.Debug},
-            };
-        }
+        private string Output => outputBuilder.ToString();
 
         [SetUp]
-        public void SetUp()
+        public void TestSetup()
         {
-            var repository = LogManager.GetAllRepositories().SingleOrDefault(x => x.Name == "test") ?? LogManager.CreateRepository("test");
-            repository.ResetConfiguration();
-            appender = new MemoryAppender();
-            BasicConfigurator.Configure(repository, appender);
-            log = new Log4netLog(LogManager.GetLogger("test", "root"));
+            outputBuilder = new StringBuilder();
+            outputWriter = new StringWriter(outputBuilder);
+
+            memoryAppender = new MemoryAppender();
+            textAppender = new TextWriterAppender {Writer = outputWriter, Layout = new PatternLayout("%m")};
+
+            log4netRepository = LogManager.GetAllRepositories().SingleOrDefault(x => x.Name == "test") ?? LogManager.CreateRepository("test");
+            log4netRepository.ResetConfiguration();
+
+            BasicConfigurator.Configure(log4netRepository, memoryAppender, textAppender);
+
+            log4netLogger = LogManager.GetLogger("test", "root").Logger;
+
+            adapter = new Log4netLog(log4netLogger);
         }
 
-        private MemoryAppender appender;
-        private Abstractions.ILog log;
+        [Test]
+        public void IsEnabledFor_should_return_true_for_enabled_levels()
+        {
+            SetRootLevel(Level.Verbose);
+
+            adapter.IsEnabledFor(LogLevel.Debug).Should().BeTrue();
+            adapter.IsEnabledFor(LogLevel.Info).Should().BeTrue();
+            adapter.IsEnabledFor(LogLevel.Warn).Should().BeTrue();
+            adapter.IsEnabledFor(LogLevel.Error).Should().BeTrue();
+            adapter.IsEnabledFor(LogLevel.Fatal).Should().BeTrue();
+
+            SetRootLevel(Level.Warn);
+
+            adapter.IsEnabledFor(LogLevel.Warn).Should().BeTrue();
+            adapter.IsEnabledFor(LogLevel.Error).Should().BeTrue();
+            adapter.IsEnabledFor(LogLevel.Fatal).Should().BeTrue();
+        }
+
+        [Test]
+        public void IsEnabledFor_should_return_false_for_disabled_levels()
+        {
+            SetRootLevel(Level.Fatal);
+
+            adapter.IsEnabledFor(LogLevel.Debug).Should().BeFalse();
+            adapter.IsEnabledFor(LogLevel.Info).Should().BeFalse();
+            adapter.IsEnabledFor(LogLevel.Warn).Should().BeFalse();
+            adapter.IsEnabledFor(LogLevel.Error).Should().BeFalse();
+
+            SetRootLevel(Level.Warn);
+
+            adapter.IsEnabledFor(LogLevel.Debug).Should().BeFalse();
+            adapter.IsEnabledFor(LogLevel.Info).Should().BeFalse();
+        }
+
+        [Test]
+        public void Log_method_should_support_null_events()
+        {
+            adapter.Log(null);
+
+            Output.Should().BeEmpty();
+        }
+
+        [Test]
+        public void Log_method_should_prerender_message()
+        {
+            adapter.Info("P1 = {0}, P2 = {1}", 1, 2);
+
+            ObservedEvent.MessageObject.Should().Be(Output);
+        }
+
+        [Test]
+        public void Log_method_should_support_syntax_with_index_based_parameters_in_template()
+        {
+            adapter.Info("P1 = {0}, P2 = {1}", 1, 2);
+
+            Output.Should().Be("P1 = 1, P2 = 2");
+
+            ObservedEvent.Properties["0"].Should().Be(1);
+            ObservedEvent.Properties["1"].Should().Be(2);
+        }
+
+        [Test]
+        public void Log_method_should_support_syntax_with_named_properties_in_anonymous_object()
+        {
+            adapter.Info("P1 = {Param1}, P2 = {Param2}", new { Param1 = 1, Param2 = 2 });
+
+            Output.Should().Be("P1 = 1, P2 = 2");
+
+            ObservedEvent.Properties["Param1"].Should().Be(1);
+            ObservedEvent.Properties["Param2"].Should().Be(2);
+        }
+
+        [Test]
+        public void Log_method_should_support_syntax_with_positional_properties_with_names_inferred_from_template()
+        {
+            adapter.Info("P1 = {Param1}, P2 = {Param2}", 1, 2);
+
+            Output.Should().Be("P1 = 1, P2 = 2");
+
+            ObservedEvent.Properties["Param1"].Should().Be(1);
+            ObservedEvent.Properties["Param2"].Should().Be(2);
+        }
+
+        [Test]
+        public void Log_method_should_support_syntax_without_any_properties()
+        {
+            adapter.Info("Hello!");
+
+            Output.Should().Be("Hello!");
+        }
+
+        [Test]
+        public void Log_method_should_translate_all_properties_not_present_in_template()
+        {
+            var @event = new LogEvent(LogLevel.Info, DateTimeOffset.Now, null)
+                .WithProperty("Param1", 1)
+                .WithProperty("Param2", 2);
+
+            adapter.Log(@event);
+
+            ObservedEvent.Properties["Param1"].Should().Be(1);
+            ObservedEvent.Properties["Param2"].Should().Be(2);
+        }
+
+        private void SetRootLevel(Level level)
+        {
+            var hierarchy = (Hierarchy) log4netRepository;
+
+            hierarchy.Root.Level = level;
+            hierarchy.RaiseConfigurationChanged(EventArgs.Empty);
+        }
     }
 }
