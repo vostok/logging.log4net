@@ -36,8 +36,10 @@ namespace Vostok.Logging.Log4net
 
         public static LoggingEvent TranslateEvent(ILogger logger, LogEvent @event)
         {
-            var message = LogEventFormatter.Format(@event, OutputTemplate.Default);
+            var message = LogMessageFormatter.Format(@event);
+
             var properties = TranslateProperties(@event.Properties);
+
             var loggingEventData = new LoggingEventData
             {
                 Level = TranslateLevel(@event.Level),
