@@ -16,16 +16,21 @@ namespace Vostok.Logging.Log4net
             {
                 case LogLevel.Debug:
                     return Level.Debug;
+
                 case LogLevel.Info:
                     return Level.Info;
+
                 case LogLevel.Warn:
                     return Level.Warn;
+
                 case LogLevel.Error:
                     return Level.Error;
+
                 case LogLevel.Fatal:
                     return Level.Fatal;
+
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(level), level, null);
+                    throw new ArgumentOutOfRangeException(nameof(level), level, $"Unexpected value of {nameof(LogLevel)}.");
             }
         }
 
