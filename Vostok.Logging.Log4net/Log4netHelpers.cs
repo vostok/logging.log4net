@@ -8,7 +8,7 @@ using Vostok.Logging.Formatting;
 
 namespace Vostok.Logging.Log4net
 {
-    public static class Log4netHelpers
+    internal static class Log4netHelpers
     {
         public static Level TranslateLevel(LogLevel level)
         {
