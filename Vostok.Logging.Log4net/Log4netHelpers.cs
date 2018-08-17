@@ -31,6 +31,11 @@ namespace Vostok.Logging.Log4net
 
             FillProperties(loggingEvent, @event.Properties);
 
+            // (iloktionov): Unfortunately, log4net's LoggingEvent does not have a constructor that allows to pass both structured exception and timestamp.
+            // (iloktionov): Constructor with Exception parameter just uses DateTime.UtcNow for timestamp.
+            // (iloktionov): Constructor with LoggingEventData only allows to pass exception string instead of exception object.
+            // (iloktionov): So we task the first ctor and use some dirty expressions to set timestamp in private LoggingEventData instance.
+
             timestampSetter?.Invoke(loggingEvent, timestamp);
 
             return loggingEvent;
