@@ -9,8 +9,7 @@ using ILog = Vostok.Logging.Abstractions.ILog;
 
 namespace Vostok.Logging.Log4net
 {
-    // TODO(iloktionov): 2. better unit test coverage (ForContext)
-    // TODO(iloktionov): 3. do something about global properties (log4net:HostName, log4net:UserName, log4net:Identity)
+    // TODO(iloktionov): better unit test coverage (ForContext)
 
     /// <summary>
     /// <para>Represents an adapter between Vostok logging interfaces and log4net.</para>
