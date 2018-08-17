@@ -18,7 +18,6 @@ namespace Vostok.Logging.Log4net
     ///     <item><description>Properties are forwarded into log4net event's <see cref="LoggingEvent.Properties"/>.<para/></description></item>
     ///     <item><description><see cref="ForContext"/> with <c>null</c> argument returns a <see cref="Log4netLog"/> based on root logger from log4net's repository.<para/></description></item>
     ///     <item><description><see cref="ForContext"/> with non-<c>null</c> argument returns a <see cref="Log4netLog"/> based on logger with name equal to context value, obtained with <see cref="ILoggerRepository.GetLogger"/>.<para/></description></item>
-    ///     <item><description><para/></description></item>
     /// </list>
     /// </summary>
     public class Log4netLog : ILog

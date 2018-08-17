@@ -1,14 +1,25 @@
 ﻿using System;
 using JetBrains.Annotations;
 using log4net.Core;
+using log4net.Repository;
+using log4net.Repository.Hierarchy;
 using Vostok.Logging.Abstractions;
 
 namespace Vostok.Logging.Log4net
 {
-    // TODO(iloktionov): 1. xml-docs
-    // TODO(iloktionov): 2. better unit test coverage
-    // TODO(iloktionov): 3. correct ForContext() implementation
-
+    /// <summary>
+    /// <para>Represents an adapter between Vostok logging interfaces and log4net.</para>
+    /// <para>It implements Vostok <see cref="ILog"/> interface using an externally provided instance of log4net <see cref="ILogger"/>.</para>
+    /// <para>It does this by following these rules:</para>
+    /// <list type="number">
+    ///     <item><description>Vostok <see cref="LogLevel"/>s are directly translated to log4net <see cref="Level"/>s.<para/></description></item>
+    ///     <item><description>Messages are prerendered into text as Vostok <see cref="ILog"/>'s formatting syntax differs from log4net.<para/></description></item>
+    ///     <item><description>Properties are forwarded into log4net event's <see cref="LoggingEvent.Properties"/>.<para/></description></item>
+    ///     <item><description><see cref="ForContext"/> with <c>null</c> argument returns a <see cref="Log4netLog"/> based on root logger from log4net's repository.<para/></description></item>
+    ///     <item><description><see cref="ForContext"/> with non-<c>null</c> argument returns a <see cref="Log4netLog"/> based on logger with name equal to current logger name + context value, obtained with <see cref="ILoggerRepository.GetLogger"/>.<para/></description></item>
+    /// </list>
+    /// <para>The main difference from <see cref="Log4netLog"/> is the ability to chain <see cref="ForContext"/> calls to obtain loggers with hierarchical names, such as <c>'name1-name2-name3'</c>.</para>
+    /// </summary>
     public class Log4netHierarchicalLog : ILog
     {
         private readonly ILogger logger;
@@ -41,10 +52,29 @@ namespace Vostok.Logging.Log4net
 
         public ILog ForContext(string context)
         {
-            if (string.IsNullOrEmpty(context))
-                throw new ArgumentException("Empty context is not allowed", nameof(context));
-            var loggerName = $"{logger.Name}-{context}";
-            return new Log4netHierarchicalLog(logger.Repository.GetLogger(loggerName));
+            ILogger newLogger;
+
+            var rootLogger = (logger.Repository as Hierarchy)?.Root;
+
+            if (context == null)
+            {
+                newLogger = rootLogger ?? logger;
+            }
+            else
+            {
+                var currentLoggerName = logger.Name;
+                if (currentLoggerName == rootLogger?.Name)
+                    currentLoggerName = null;
+
+                var newLoggerName = string.IsNullOrEmpty(currentLoggerName) ? context : currentLoggerName + "-" + context;
+
+                newLogger = logger.Repository.GetLogger(newLoggerName);
+            }
+
+            if (newLogger.Name == logger.Name)
+                return this;
+
+            return new Log4netHierarchicalLog(newLogger);
         }
     }
 }
