@@ -1,6 +1,5 @@
 ﻿using System;
 using JetBrains.Annotations;
-using log4net;
 using log4net.Core;
 using log4net.Repository;
 using log4net.Repository.Hierarchy;
@@ -9,8 +8,6 @@ using ILog = Vostok.Logging.Abstractions.ILog;
 
 namespace Vostok.Logging.Log4net
 {
-    // TODO(iloktionov): better unit test coverage (ForContext)
-
     /// <summary>
     /// <para>Represents an adapter between Vostok logging interfaces and log4net.</para>
     /// <para>It implements Vostok <see cref="ILog"/> interface using an externally provided instance of log4net <see cref="ILogger"/>.</para>
@@ -67,7 +64,7 @@ namespace Vostok.Logging.Log4net
                 newLogger = logger.Repository.GetLogger(context);
             }
 
-            if (newLogger.Name == context)
+            if (newLogger.Name == logger.Name)
                 return this;
 
             return new Log4netLog(newLogger);

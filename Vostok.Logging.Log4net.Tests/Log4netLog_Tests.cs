@@ -155,6 +155,42 @@ namespace Vostok.Logging.Log4net.Tests
             ObservedEvent.Properties["Param2"].Should().Be(2);
         }
 
+        [Test]
+        public void ForContext_with_non_null_argument_should_produce_a_wrapper_around_named_logger()
+        {
+            adapter = adapter.ForContext("CustomLogger");
+
+            adapter.Info("Hello!");
+
+            ObservedEvent.LoggerName.Should().Be("CustomLogger");
+        }
+
+        [Test]
+        public void ForContext_should_support_overriding_logger_name_with_a_chain_of_calls()
+        {
+            adapter = adapter
+                .ForContext("CustomLogger1")
+                .ForContext("CustomLogger2")
+                .ForContext("CustomLogger3");
+
+            adapter.Info("Hello!");
+
+            ObservedEvent.LoggerName.Should().Be("CustomLogger3");
+        }
+
+        [Test]
+        public void ForContext_with_null_argument_should_produce_a_wrapper_around_root_logger()
+        {
+            adapter = adapter
+                .ForContext("CustomLogger1")
+                .ForContext("CustomLogger2")
+                .ForContext(null);
+
+            adapter.Info("Hello!");
+
+            ObservedEvent.LoggerName.Should().Be("root");
+        }
+
         private void SetRootLevel(Level level)
         {
             var hierarchy = (Hierarchy) log4netRepository;
