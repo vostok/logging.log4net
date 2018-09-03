@@ -5,6 +5,7 @@ using System.Reflection;
 using JetBrains.Annotations;
 using log4net.Core;
 using log4net.Repository.Hierarchy;
+using log4net.Util;
 using Vostok.Logging.Abstractions;
 using Vostok.Logging.Formatting;
 
@@ -34,7 +35,7 @@ namespace Vostok.Logging.Log4net
             // (iloktionov): Unfortunately, log4net's LoggingEvent does not have a constructor that allows to pass both structured exception and timestamp.
             // (iloktionov): Constructor with Exception parameter just uses DateTime.UtcNow for timestamp.
             // (iloktionov): Constructor with LoggingEventData only allows to pass exception string instead of exception object.
-            // (iloktionov): So we task the first ctor and use some dirty expressions to set timestamp in private LoggingEventData instance.
+            // (iloktionov): So we take the first ctor and use some dirty expressions to set timestamp in private LoggingEventData instance.
 
             timestampSetter?.Invoke(loggingEvent, timestamp);
 
@@ -102,8 +103,10 @@ namespace Vostok.Logging.Log4net
 
                 return Expression.Lambda<Action<LoggingEvent, DateTime>>(setterExpression, eventParameter, timestampParameter).Compile();
             }
-            catch
+            catch (Exception error)
             {
+                LogLog.Error(typeof(Log4netHelpers), $"Failed to compile timestamp setter delegate for log4net's {typeof(LoggingEvent).Name}.", error);
+
                 return null;
             }
         }
