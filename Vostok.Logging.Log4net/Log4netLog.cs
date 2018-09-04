@@ -52,17 +52,10 @@ namespace Vostok.Logging.Log4net
 
         public ILog ForContext(string context)
         {
-            ILogger newLogger;
-
             if (context == null)
-            {
-                newLogger = (logger.Repository as Hierarchy)?.Root ?? logger;
-            }
-            else
-            {
-                newLogger = logger.Repository.GetLogger(context);
-            }
+                throw new ArgumentNullException(nameof(context));
 
+            var newLogger = logger.Repository.GetLogger(context);
             if (newLogger.Name == logger.Name)
                 return this;
 
