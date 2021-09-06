@@ -3,7 +3,6 @@ using JetBrains.Annotations;
 using log4net.Core;
 using Vostok.Logging.Abstractions;
 using Vostok.Logging.Abstractions.Values;
-using Vostok.Logging.Abstractions.Wrappers;
 
 namespace Vostok.Logging.Log4net
 {
@@ -68,6 +67,8 @@ namespace Vostok.Logging.Log4net
             if (!IsEnabledFor(@event.Level))
                 return;
 
+            @event = @event.WithProperty(WellKnownProperties.SourceContext, sourceContext + GetSourceContext(@event));
+
             logger.Log(Log4netHelpers.TranslateEvent(logger, @event, settings.UseVostokTemplate));
         }
 
@@ -82,9 +83,6 @@ namespace Vostok.Logging.Log4net
         {
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
-
-            if (settings.UseVostokTemplate)
-                return new SourceContextWrapper(this, context);
 
             var newSourceContext = sourceContext + context;
 
@@ -103,5 +101,13 @@ namespace Vostok.Logging.Log4net
 
         private static bool IsTrivialLoggerName([CanBeNull] string loggerName)
             => string.IsNullOrEmpty(loggerName) || loggerName == "root";
+
+        private SourceContextValue GetSourceContext([CanBeNull] LogEvent @event)
+        {
+            if (@event?.Properties == null)
+                return null;
+
+            return @event.Properties.TryGetValue(WellKnownProperties.SourceContext, out var value) ? value as SourceContextValue : null;
+        }
     }
 }

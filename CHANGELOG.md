@@ -1,4 +1,4 @@
-## 1.0.4 (06.09.2021):
+## 1.0.5 (06.09.2021):
 
 Fixed context rendering with `UseVostokTemplate` setting.
 
