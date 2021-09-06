@@ -1,6 +1,6 @@
 ## 1.0.5 (06.09.2021):
 
-Fixed context rendering with `UseVostokTemplate` setting.
+Fixed context rendering with `UseVostokTemplate` setting ([pull request](https://github.com/Tinkturianec/logging.log4net/pull/2)).
 
 ## 1.0.3 (28.02.2020):
 
