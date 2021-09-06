@@ -28,10 +28,6 @@ namespace Vostok.Logging.Log4net.Tests
         private ILogger log4netLogger;
         private ILog adapter;
 
-        private LoggingEvent ObservedEvent => memoryAppender.GetEvents().Last();
-
-        private string Output => outputBuilder.ToString();
-
         [SetUp]
         public void TestSetup()
         {
@@ -115,7 +111,7 @@ namespace Vostok.Logging.Log4net.Tests
         [Test]
         public void Log_method_should_support_syntax_with_named_properties_in_anonymous_object()
         {
-            adapter.Info("P1 = {Param1}, P2 = {Param2}", new { Param1 = 1, Param2 = 2 });
+            adapter.Info("P1 = {Param1}, P2 = {Param2}", new {Param1 = 1, Param2 = 2});
 
             Output.Should().Be("P1 = 1, P2 = 2");
 
@@ -203,9 +199,52 @@ namespace Vostok.Logging.Log4net.Tests
             ObservedEvent.LoggerName.Should().Be("ctx3.ctx2.ctx1");
         }
 
+        [Test]
+        public void ForContext_with_non_null_argument_should_render_context()
+        {
+            adapter = new Log4netLog(log4netLogger, new Log4netLogSettings {UseVostokTemplate = true})
+                .ForContext("CustomLogger");
+
+            adapter.Info("Hello!");
+
+            Output.Should().Be("[CustomLogger] Hello!");
+        }
+
+        [Test]
+        public void ForContext_should_support_accumulating_context_with_a_chain_of_calls()
+        {
+            adapter = new Log4netLog(log4netLogger, new Log4netLogSettings {UseVostokTemplate = true})
+                .ForContext("CustomLogger1")
+                .ForContext("CustomLogger2")
+                .ForContext("CustomLogger3");
+
+            adapter.Info("Hello!");
+
+            Output.Should().Be("[CustomLogger1 => CustomLogger2 => CustomLogger3] Hello!");
+        }
+
+        [Test]
+        public void ForContext_should_ignore_configured_logger_name_factory_on_render()
+        {
+            ((Log4netLog)adapter).LoggerNameFactory = ctx => string.Join(".", ctx.Reverse());
+
+            adapter = new Log4netLog(log4netLogger, new Log4netLogSettings {UseVostokTemplate = true})
+                .ForContext("ctx1")
+                .ForContext("ctx2")
+                .ForContext("ctx3");
+
+            adapter.Info("Hello!");
+
+            Output.Should().Be("[ctx1 => ctx2 => ctx3] Hello!");
+        }
+
+        private LoggingEvent ObservedEvent => memoryAppender.GetEvents().Last();
+
+        private string Output => outputBuilder.ToString();
+
         private void SetRootLevel(Level level)
         {
-            var hierarchy = (Hierarchy) log4netRepository;
+            var hierarchy = (Hierarchy)log4netRepository;
 
             hierarchy.Root.Level = level;
             hierarchy.RaiseConfigurationChanged(EventArgs.Empty);

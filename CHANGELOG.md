@@ -1,3 +1,7 @@
+## 1.0.4 (06.09.2021):
+
+Fixed context rendering with `UseVostokTemplate` setting.
+
 ## 1.0.3 (28.02.2020):
 
 Added `UseVostokTemplate` setting.

@@ -1,9 +1,9 @@
 ﻿using System;
 using JetBrains.Annotations;
 using log4net.Core;
-using log4net.Repository;
 using Vostok.Logging.Abstractions;
 using Vostok.Logging.Abstractions.Values;
+using Vostok.Logging.Abstractions.Wrappers;
 
 namespace Vostok.Logging.Log4net
 {
@@ -82,6 +82,9 @@ namespace Vostok.Logging.Log4net
         {
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
+
+            if (settings.UseVostokTemplate)
+                return new SourceContextWrapper(this, context);
 
             var newSourceContext = sourceContext + context;
 
