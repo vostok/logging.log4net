@@ -16,6 +16,10 @@ notests *default:
     - vostok.logging.formatting
 
 full-build > notests:
+  deps:
+    - -vostok.devtools
+    - vostok.devtools@with-net6.0
+
   build:
     target: Vostok.Logging.Log4net.sln
     configuration: Release
