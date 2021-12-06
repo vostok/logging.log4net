@@ -1,3 +1,7 @@
+## 1.0.6 (06-12-2021):
+
+Added `net6.0` target.
+
 ## 1.0.5 (06.09.2021):
 
 Fixed context rendering with `UseVostokTemplate` setting ([pull request](https://github.com/Tinkturianec/logging.log4net/pull/2)).
