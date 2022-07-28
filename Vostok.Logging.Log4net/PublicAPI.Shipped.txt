@@ -1,0 +1,14 @@
+Vostok.Logging.Log4net.Log4netLog
+Vostok.Logging.Log4net.Log4netLog.ForContext(string context) -> Vostok.Logging.Abstractions.ILog
+Vostok.Logging.Log4net.Log4netLog.IsEnabledFor(Vostok.Logging.Abstractions.LogLevel level) -> bool
+Vostok.Logging.Log4net.Log4netLog.Log(Vostok.Logging.Abstractions.LogEvent event) -> void
+Vostok.Logging.Log4net.Log4netLog.Log4netLog(log4net.Core.ILogger logger) -> void
+Vostok.Logging.Log4net.Log4netLog.Log4netLog(log4net.Core.ILogger logger, Vostok.Logging.Log4net.Log4netLogSettings settings) -> void
+Vostok.Logging.Log4net.Log4netLog.Log4netLog(log4net.ILog log) -> void
+Vostok.Logging.Log4net.Log4netLog.Log4netLog(log4net.ILog log, Vostok.Logging.Log4net.Log4netLogSettings settings) -> void
+Vostok.Logging.Log4net.Log4netLog.LoggerNameFactory.get -> System.Func<Vostok.Logging.Abstractions.Values.SourceContextValue, string>
+Vostok.Logging.Log4net.Log4netLog.LoggerNameFactory.set -> void
+Vostok.Logging.Log4net.Log4netLogSettings
+Vostok.Logging.Log4net.Log4netLogSettings.Log4netLogSettings() -> void
+Vostok.Logging.Log4net.Log4netLogSettings.UseVostokTemplate.get -> bool
+Vostok.Logging.Log4net.Log4netLogSettings.UseVostokTemplate.set -> void
