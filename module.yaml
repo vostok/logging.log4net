@@ -9,6 +9,22 @@ notests *default:
     - Vostok.Logging.Log4net/bin/Release/netstandard2.0/Vostok.Logging.Log4net.dll
     - module vostok.logging.abstractions
     - nuget log4net/2.0.8
+    - groups:
+      - target-framework: "netstandard2.0"
+        libraries:
+          - Vostok.Logging.Log4net/bin/Release/netstandard2.0/Vostok.Logging.Log4net.dll
+        modules:
+          - name: vostok.logging.abstractions
+      - target-framework: "net6.0"
+        libraries:
+          - Vostok.Logging.Log4net/bin/Release/net6.0/Vostok.Logging.Log4net.dll
+        modules:
+          - name: vostok.logging.abstractions
+      - target-framework: "net8.0"
+        libraries:
+          - Vostok.Logging.Log4net/bin/Release/net8.0/Vostok.Logging.Log4net.dll
+        modules:
+          - name: vostok.logging.abstractions
 
   deps:
     - vostok.devtools
@@ -16,6 +32,27 @@ notests *default:
     - vostok.logging.formatting
 
 full-build > notests:
+  install:
+    - Vostok.Logging.Log4net/bin/Release/netstandard2.0/Vostok.Logging.Log4net.dll
+    - module vostok.logging.abstractions
+    - nuget log4net/2.0.8
+    - groups:
+      - target-framework: "netstandard2.0"
+        libraries:
+          - Vostok.Logging.Log4net/bin/Release/netstandard2.0/Vostok.Logging.Log4net.dll
+        modules:
+          - name: vostok.logging.abstractions
+      - target-framework: "net6.0"
+        libraries:
+          - Vostok.Logging.Log4net/bin/Release/net6.0/Vostok.Logging.Log4net.dll
+        modules:
+          - name: vostok.logging.abstractions
+      - target-framework: "net8.0"
+        libraries:
+          - Vostok.Logging.Log4net/bin/Release/net8.0/Vostok.Logging.Log4net.dll
+        modules:
+          - name: vostok.logging.abstractions
+
   deps:
     - -vostok.devtools
     - vostok.devtools@with-net6.0
